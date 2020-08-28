@@ -1,6 +1,7 @@
 package bloom_filter
 
 import (
+	"fmt"
 	"github.com/golang-collections/go-datastructures/bitarray"
 	"hash"
 	"hash/crc64"
@@ -37,6 +38,7 @@ func (s *StandardBloomFilter) Insert(item string) {
 		h2 uint64
 		ki uint64
 	)
+	h1, h2 = s.hashKernel(item)
 	for ki = 0; ki < s.optimalK; ki++ {
 		var index = s.getIndex(h1, h2, ki)
 		_ = s.bitmap.SetBit(index)
@@ -49,6 +51,7 @@ func (s *StandardBloomFilter) Contains(item string) bool {
 		h2 uint64
 		ki uint64
 	)
+	h1, h2 = s.hashKernel(item)
 	for ki = 0; ki < s.optimalK; ki++ {
 		var (
 			err error
@@ -74,10 +77,11 @@ func (s *StandardBloomFilter) hashKernel(item string) (uint64, uint64) {
 	hash2 = s.hashes[1]
 	defer hash1.Reset()
 	defer hash2.Reset()
-	_ = hash1.Sum([]byte(item))
-	_ = hash2.Sum([]byte(item))
+	_, _ = hash1.Write([]byte(item))
+	_, _ = hash2.Write([]byte(item))
 	h1 = hash1.Sum64()
 	h2 = hash2.Sum64()
+	fmt.Println(h1, h2)
 	return h1, h2
 }
 
